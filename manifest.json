@@ -1,0 +1,22 @@
+{
+  "name": "Dhule Electrical Works - 24x7 Electrician Service",
+  "short_name": "Dhule Electrical",
+  "description": "Licensed & Professional 24x7 Electrician Services in Dhule, Maharashtra. House wiring, inverter installation, motor starter repair & emergency fixes.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0F172A",
+  "theme_color": "#0F52BA",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "https://img.icons8.com/color/192/lightning-bolt.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "https://img.icons8.com/color/512/lightning-bolt.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
