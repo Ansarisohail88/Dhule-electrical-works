@@ -1,19 +1,68 @@
 /**
- * Dhule Electrical Works - Main JavaScript
- * Dynamic Configuration Binding & Protected Admin Panel
- * Interactive Features: Dark Mode, Service Search/Filter, Pricing Calculator,
- * Before/After Slider, Lightbox, FAQ Accordion, Booking Modal, PWA Registration,
- * Password-Protected Admin Panel with LocalStorage Persistence
+ * Dhule Electrical Works - Main JavaScript Engine
+ * Real-time Firebase Firestore, Firebase Authentication & Firebase Storage Integration
  */
 
-// Global state
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { 
+  getAuth, 
+  signInWithEmailAndPassword, 
+  createUserWithEmailAndPassword, 
+  signOut, 
+  onAuthStateChanged,
+  GoogleAuthProvider,
+  signInWithPopup
+} from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+import { 
+  getFirestore, 
+  doc, 
+  getDoc, 
+  setDoc, 
+  onSnapshot 
+} from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+import { 
+  getStorage, 
+  ref, 
+  uploadBytes, 
+  getDownloadURL 
+} from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js';
+
+// --- Firebase Configuration ---
+const firebaseConfig = {
+  projectId: "long-lattice-86pck",
+  appId: "1:387372636455:web:7d487775d4c766fd703102",
+  apiKey: "AIzaSyBHbi-D5v5Flvuq3pOZlQWAhSX0magsa8A",
+  authDomain: "long-lattice-86pck.firebaseapp.com",
+  firestoreDatabaseId: "ai-studio-dhuleelectricalw-4bd19ed7-5aed-412a-bb96-7e1d742655c6",
+  storageBucket: "long-lattice-86pck.firebasestorage.app",
+  messagingSenderId: "387372636455"
+};
+
+// Initialize Firebase
+const firebaseApp = initializeApp(firebaseConfig);
+const auth = getAuth(firebaseApp);
+
+let db;
+try {
+  db = getFirestore(firebaseApp, firebaseConfig.firestoreDatabaseId);
+} catch (e) {
+  console.warn('[Firebase] Fallback to default database instance:', e);
+  db = getFirestore(firebaseApp);
+}
+
+const storage = getStorage(firebaseApp);
+
+// Global State
 let SERVICES_DATA = [];
 let ADMIN_AUTHENTICATED = false;
+let CURRENT_USER = null;
+
 let TEMP_SERVICES = [];
 let TEMP_GALLERY = [];
 let TEMP_REVIEWS = [];
+let TEMP_FAQ = [];
 
-// Helper to safely get nested config properties
+// Helper to safely resolve nested property path in CONFIG
 function getProp(path, fallback = '') {
   if (!window.CONFIG) return fallback;
   const parts = path.split('.');
@@ -28,82 +77,97 @@ function getProp(path, fallback = '') {
   return current !== undefined ? current : fallback;
 }
 
-// --- LocalStorage Config Management ---
-function loadEffectiveConfig() {
-  const stored = localStorage.getItem('dhule_site_config');
-  if (stored) {
-    try {
-      const parsed = JSON.parse(stored);
-      window.CONFIG = Object.assign({}, window.CONFIG || {}, parsed);
-    } catch (e) {
-      console.error('Failed to parse stored config from localStorage', e);
-    }
-  }
-  if (window.CONFIG) {
-    SERVICES_DATA = Array.isArray(window.CONFIG.services) ? window.CONFIG.services : [];
-  }
-}
-
-function saveEffectiveConfig(newConfig) {
-  window.CONFIG = newConfig;
-  SERVICES_DATA = Array.isArray(newConfig.services) ? newConfig.services : [];
-  localStorage.setItem('dhule_site_config', JSON.stringify(newConfig));
-
-  applyConfigToDOM();
-  renderServices(SERVICES_DATA);
-  renderGallery(window.CONFIG.gallery || []);
-  renderReviews(window.CONFIG.reviews || []);
-  initPricingCalculator();
-}
-
-function resetEffectiveConfig() {
-  if (confirm('Are you sure you want to reset all custom edits and restore original default settings?')) {
-    localStorage.removeItem('dhule_site_config');
-    showToast('Factory default settings restored. Reloading page...');
-    setTimeout(() => {
-      window.location.reload();
-    }, 1000);
-  }
-}
-
-// --- DOM Ready Initialization ---
+// --- DOM Ready Entry Point ---
 document.addEventListener('DOMContentLoaded', () => {
-  // Load effective config from localStorage if available
-  loadEffectiveConfig();
-
-  // Apply central business config variables to DOM
-  applyConfigToDOM();
-
   initPreloader();
   initThemeToggle();
   initMobileNav();
   initScrollTop();
-
-  // Render dynamic sections
-  renderServices(SERVICES_DATA);
-  renderGallery(window.CONFIG ? window.CONFIG.gallery : []);
-  renderReviews(window.CONFIG ? window.CONFIG.reviews : []);
-
   initServiceSearchAndFilter();
   initPricingCalculator();
   initBeforeAfterSlider();
-  initFAQAccordion();
   initModals();
   initForms();
   initAdminPanel();
+  initFirebaseStorageListeners();
   registerServiceWorker();
+
+  // Listen to Auth State Changes
+  onAuthStateChanged(auth, (user) => {
+    CURRENT_USER = user;
+    ADMIN_AUTHENTICATED = !!user;
+    updateAdminAuthUI(user);
+  });
+
+  // Subscribe to Realtime Firestore Config Updates
+  initFirestoreRealtimeSync();
 });
+
+// --- Real-time Firestore Synchronization ---
+function initFirestoreRealtimeSync() {
+  const docRef = doc(db, "config", "siteConfig");
+
+  onSnapshot(docRef, async (snapshot) => {
+    if (snapshot.exists()) {
+      const liveData = snapshot.data();
+      const defaultServices = (typeof CONFIG !== 'undefined' && Array.isArray(CONFIG.services) && CONFIG.services.length > 0)
+        ? CONFIG.services
+        : [];
+
+      // If services in cloud is empty or missing, restore the original 17 electrical services
+      if (!Array.isArray(liveData.services) || liveData.services.length === 0) {
+        console.warn('[Firestore] Cloud services array is empty. Restoring original 17 electrical services...');
+        liveData.services = defaultServices;
+        try {
+          await setDoc(docRef, { services: defaultServices }, { merge: true });
+          console.log('[Firestore] Successfully updated siteConfig with 17 default services.');
+        } catch (err) {
+          console.warn('[Firestore] Could not auto-persist restored services to cloud:', err.message);
+        }
+      }
+
+      window.CONFIG = Object.assign({}, window.CONFIG || {}, liveData);
+      console.log('[Firestore] Live config synced with', window.CONFIG.services?.length, 'services');
+      applyConfigAndRenderAll();
+    } else {
+      console.log('[Firestore] No siteConfig document in cloud yet. Applying local configuration.');
+      applyConfigAndRenderAll();
+      if (auth.currentUser) {
+        try {
+          const initialConfig = window.CONFIG || {};
+          await setDoc(docRef, initialConfig);
+          showToast('Initial default site configuration saved to Firestore!');
+        } catch (err) {
+          console.warn('[Firestore] Auto-bootstrap write skipped:', err.message);
+        }
+      }
+    }
+  }, (error) => {
+    console.warn('[Firestore] Realtime subscription note:', error.message);
+    applyConfigAndRenderAll();
+  });
+}
+
+// Render all dynamic components when CONFIG updates
+function applyConfigAndRenderAll() {
+  if (!window.CONFIG) return;
+
+  SERVICES_DATA = Array.isArray(window.CONFIG.services) ? window.CONFIG.services : [];
+
+  applyThemeColors(window.CONFIG.themeColors);
+  applyConfigToDOM();
+  renderServices(SERVICES_DATA);
+  renderGallery(window.CONFIG.gallery || []);
+  renderReviews(window.CONFIG.reviews || []);
+  renderFAQ(window.CONFIG.faq || []);
+  initPricingCalculator();
+}
 
 // --- Dynamic Business Configuration Applicator ---
 function applyConfigToDOM() {
   if (!window.CONFIG) return;
 
-  // Re-sync SERVICES_DATA if config loaded
-  if (Array.isArray(window.CONFIG.services)) {
-    SERVICES_DATA = window.CONFIG.services;
-  }
-
-  // 1. Update text content for data-config elements
+  // 1. Text elements
   document.querySelectorAll('[data-config]').forEach(el => {
     const path = el.getAttribute('data-config');
     const val = getProp(path);
@@ -112,14 +176,45 @@ function applyConfigToDOM() {
     }
   });
 
-  // 2. Update HTML content for data-config-html elements
+  // 2. HTML elements
   document.querySelectorAll('[data-config-html]').forEach(el => {
     const path = el.getAttribute('data-config-html');
     const val = getProp(path);
     if (val) el.innerHTML = val;
   });
 
-  // 3. Update telephone links & displays
+  // 3. Logo Image Handling
+  const logoUrl = getProp('business.logoUrl');
+  if (logoUrl) {
+    document.querySelectorAll('.brand-logo').forEach(brandContainer => {
+      let logoImg = brandContainer.querySelector('.custom-logo-img');
+      if (!logoImg) {
+        logoImg = document.createElement('img');
+        logoImg.className = 'custom-logo-img';
+        logoImg.style.maxHeight = '42px';
+        logoImg.style.marginRight = '0.5rem';
+        logoImg.style.borderRadius = 'var(--radius-sm)';
+        const iconDiv = brandContainer.querySelector('.logo-icon');
+        if (iconDiv) {
+          iconDiv.replaceWith(logoImg);
+        } else {
+          brandContainer.prepend(logoImg);
+        }
+      }
+      logoImg.src = logoUrl;
+    });
+  }
+
+  // 4. Hero Background Image Handling
+  const heroImageUrl = getProp('business.heroImageUrl');
+  const heroSection = document.getElementById('home');
+  if (heroSection && heroImageUrl) {
+    heroSection.style.backgroundImage = `linear-gradient(rgba(15, 23, 42, 0.85), rgba(15, 23, 42, 0.85)), url('${heroImageUrl}')`;
+    heroSection.style.backgroundSize = 'cover';
+    heroSection.style.backgroundPosition = 'center';
+  }
+
+  // 5. Telephone links
   const phone = getProp('contact.phone', '+919876543210');
   const phoneDisplay = getProp('contact.phoneDisplay', phone);
   
@@ -134,7 +229,7 @@ function applyConfigToDOM() {
     }
   });
 
-  // 4. Update WhatsApp links
+  // 6. WhatsApp links
   const waNum = getProp('contact.whatsappNumber', '919876543210');
   document.querySelectorAll('a[href*="wa.me"]').forEach(a => {
     try {
@@ -150,20 +245,20 @@ function applyConfigToDOM() {
     }
   });
 
-  // 5. Update Map iframe URL
+  // 7. Google Map Iframe
   const mapUrl = getProp('location.googleMapEmbedUrl');
   const mapIframe = document.getElementById('map-iframe');
   if (mapIframe && mapUrl) {
     mapIframe.src = mapUrl;
   }
 
-  // 6. Update Address elements
+  // 8. Address
   const address = getProp('location.address');
   document.querySelectorAll('.config-address').forEach(el => {
     if (address) el.textContent = address;
   });
 
-  // 7. Update Coverage Area Badges
+  // 9. Coverage Area Badges
   const areas = getProp('location.coverageAreas');
   const badgesContainer = document.getElementById('coverage-area-badges');
   if (badgesContainer && Array.isArray(areas)) {
@@ -172,7 +267,7 @@ function applyConfigToDOM() {
     `).join('');
   }
 
-  // 8. Update Location Options in Quick Form
+  // 10. Location Options in Hero Quick Form
   const heroAreaSelect = document.getElementById('hero-area');
   if (heroAreaSelect && Array.isArray(areas)) {
     heroAreaSelect.innerHTML = areas.map(area => `
@@ -180,7 +275,7 @@ function applyConfigToDOM() {
     `).join('') + `<option value="Other Area">Other Area in ${getProp('location.city', 'Dhule')}</option>`;
   }
 
-  // 9. Update Business Hours
+  // 11. Business Hours Table
   const days = getProp('businessHours.days', 'Monday - Sunday');
   const time = getProp('businessHours.time', '24 Hours Open');
   const responseTime = getProp('businessHours.responseTime', '20-25 Mins');
@@ -200,18 +295,66 @@ function applyConfigToDOM() {
   }
 }
 
+// --- Theme Colors Custom Properties ---
+function applyThemeColors(colors) {
+  if (!colors) return;
+  const root = document.documentElement;
+  if (colors.primary) root.style.setProperty('--primary', colors.primary);
+  if (colors.primaryHover) root.style.setProperty('--primary-hover', colors.primaryHover);
+  if (colors.secondary) root.style.setProperty('--secondary', colors.secondary);
+  if (colors.accentGreen) root.style.setProperty('--accent-green', colors.accentGreen);
+  if (colors.accentRed) root.style.setProperty('--accent-red', colors.accentRed);
+}
+
+// --- Dynamic FAQ Accordion ---
+function renderFAQ(faqList) {
+  const container = document.getElementById('faq-accordion-container');
+  if (!container) return;
+
+  if (!faqList || faqList.length === 0) {
+    container.innerHTML = `
+      <div style="text-align: center; padding: 2rem;" class="glass-card">
+        <p style="color: var(--text-muted);">No FAQs available.</p>
+      </div>
+    `;
+    return;
+  }
+
+  container.innerHTML = faqList.map((f, idx) => `
+    <div class="faq-item ${idx === 0 ? 'active' : ''}">
+      <button class="faq-question">
+        <span>${f.question}</span>
+        <i class="fa-solid fa-chevron-down"></i>
+      </button>
+      <div class="faq-answer">
+        <p>${f.answer}</p>
+      </div>
+    </div>
+  `).join('');
+
+  // Bind toggle events
+  container.querySelectorAll('.faq-item').forEach(item => {
+    const btn = item.querySelector('.faq-question');
+    if (btn) {
+      btn.addEventListener('click', () => {
+        const isActive = item.classList.contains('active');
+        container.querySelectorAll('.faq-item').forEach(i => i.classList.remove('active'));
+        if (!isActive) {
+          item.classList.add('active');
+        }
+      });
+    }
+  });
+}
+
 // --- Preloader ---
 function initPreloader() {
   const preloader = document.getElementById('preloader');
   if (preloader) {
     window.addEventListener('load', () => {
-      setTimeout(() => {
-        preloader.classList.add('hidden');
-      }, 300);
+      setTimeout(() => preloader.classList.add('hidden'), 300);
     });
-    setTimeout(() => {
-      preloader.classList.add('hidden');
-    }, 1500);
+    setTimeout(() => preloader.classList.add('hidden'), 1500);
   }
 }
 
@@ -338,7 +481,6 @@ function renderGallery(galleryItems) {
     </div>
   `).join('');
 
-  // Re-bind Lightbox Triggering
   container.querySelectorAll('.gallery-item').forEach(item => {
     item.addEventListener('click', () => {
       const img = item.querySelector('img');
@@ -530,7 +672,7 @@ function initPricingCalculator() {
   calculate();
 }
 
-// --- Before/After Image Comparison Slider ---
+// --- Before/After Comparison Slider ---
 function initBeforeAfterSlider() {
   const container = document.querySelector('.before-after-container');
   const afterImage = document.querySelector('.ba-after');
@@ -567,25 +709,7 @@ function initBeforeAfterSlider() {
   });
 }
 
-// --- FAQ Accordion ---
-function initFAQAccordion() {
-  const faqItems = document.querySelectorAll('.faq-item');
-
-  faqItems.forEach(item => {
-    const question = item.querySelector('.faq-question');
-    if (question) {
-      question.addEventListener('click', () => {
-        const isActive = item.classList.contains('active');
-        faqItems.forEach(i => i.classList.remove('active'));
-        if (!isActive) {
-          item.classList.add('active');
-        }
-      });
-    }
-  });
-}
-
-// --- Modals & Lightbox Popups ---
+// --- Modals ---
 function initModals() {
   const modalOverlays = document.querySelectorAll('.modal-overlay');
   modalOverlays.forEach(overlay => {
@@ -621,7 +745,7 @@ function closeAllModals() {
   document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('open'));
 }
 
-// --- Forms & Direct WhatsApp Redirect ---
+// --- Forms & Direct WhatsApp Redirect + Firebase Review Publishing ---
 function initForms() {
   const waNum = getProp('contact.whatsappNumber', '919876543210');
   const bizName = getProp('business.name', 'Dhule Electrical Works');
@@ -669,7 +793,7 @@ function initForms() {
 
   const reviewForm = document.getElementById('add-review-form');
   if (reviewForm) {
-    reviewForm.addEventListener('submit', (e) => {
+    reviewForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       const name = document.getElementById('rev-name').value;
       const location = document.getElementById('rev-location').value;
@@ -685,54 +809,179 @@ function initForms() {
 
       if (!window.CONFIG.reviews) window.CONFIG.reviews = [];
       window.CONFIG.reviews.unshift(newReview);
-      saveEffectiveConfig(window.CONFIG);
 
-      closeAllModals();
-      showToast('Thank you! Your review has been saved and published.');
-      reviewForm.reset();
+      try {
+        await setDoc(doc(db, "config", "siteConfig"), { reviews: window.CONFIG.reviews }, { merge: true });
+        closeAllModals();
+        showToast('Thank you! Your review has been saved to Firestore.');
+        reviewForm.reset();
+      } catch (err) {
+        console.error('Error submitting review:', err);
+        showToast('Review saved locally.');
+      }
     });
   }
 }
 
-// --- ADMIN PANEL LOGIC & PASSWORD PROTECTION ---
+// --- ADMIN PANEL & FIREBASE AUTHENTICATION ---
+function updateAdminAuthUI(user) {
+  const badge = document.getElementById('admin-auth-status-badge');
+  const logoutBtn = document.getElementById('admin-logout-btn');
+  const loginStatus = document.getElementById('admin-login-status');
+
+  if (user) {
+    if (badge) {
+      badge.innerHTML = `<i class="fa-solid fa-circle-check"></i> Connected: ${user.email}`;
+      badge.style.background = 'rgba(16, 185, 129, 0.15)';
+      badge.style.color = 'var(--accent-green)';
+    }
+    if (logoutBtn) logoutBtn.style.display = 'inline-flex';
+    if (loginStatus) {
+      loginStatus.innerHTML = `<span style="color: var(--accent-green);"><i class="fa-solid fa-user-check"></i> Authenticated as ${user.email}</span>`;
+    }
+  } else {
+    if (badge) {
+      badge.innerHTML = `<i class="fa-solid fa-lock"></i> Not Logged In`;
+      badge.style.background = 'rgba(239, 68, 68, 0.15)';
+      badge.style.color = 'var(--accent-red)';
+    }
+    if (logoutBtn) logoutBtn.style.display = 'none';
+    if (loginStatus) {
+      loginStatus.innerHTML = `<i class="fa-solid fa-lock"></i> Protected by Firebase Firestore & Auth`;
+    }
+  }
+}
+
 function initAdminPanel() {
-  const openAdminBtn = document.getElementById('open-admin-btn');
+  const secretAdminBanner = document.getElementById('secret-admin-banner');
+  const secretAdminLoginBtn = document.getElementById('secret-admin-login-btn');
   const footerOpenAdminBtn = document.getElementById('footer-open-admin-btn');
+  const openAdminBtn = document.getElementById('open-admin-btn');
   const adminLoginModal = document.getElementById('admin-login-modal');
   const adminPanelModal = document.getElementById('admin-panel-modal');
   const adminLoginForm = document.getElementById('admin-login-form');
+  const adminEmailInput = document.getElementById('admin-email-input');
   const adminPassInput = document.getElementById('admin-pass-input');
+  const logoutBtn = document.getElementById('admin-logout-btn');
 
   // Trigger admin login or admin panel
   function handleOpenAdmin(e) {
     if (e) e.preventDefault();
-    if (ADMIN_AUTHENTICATED) {
+    if (ADMIN_AUTHENTICATED && CURRENT_USER) {
       populateAdminPanelForms();
       if (adminPanelModal) adminPanelModal.classList.add('open');
     } else {
+      if (adminEmailInput) adminEmailInput.value = getProp('adminEmail', 'pr19021997@gmail.com');
       if (adminPassInput) adminPassInput.value = '';
       if (adminLoginModal) adminLoginModal.classList.add('open');
     }
   }
 
-  if (openAdminBtn) openAdminBtn.addEventListener('click', handleOpenAdmin);
+  if (secretAdminLoginBtn) secretAdminLoginBtn.addEventListener('click', handleOpenAdmin);
   if (footerOpenAdminBtn) footerOpenAdminBtn.addEventListener('click', handleOpenAdmin);
+  if (openAdminBtn) openAdminBtn.addEventListener('click', handleOpenAdmin);
 
-  // Admin Login submit
-  if (adminLoginForm) {
-    adminLoginForm.addEventListener('submit', (e) => {
-      e.preventDefault();
-      const enteredPass = adminPassInput.value.trim();
-      const actualPass = getProp('adminPassword', 'admin123');
+  // Check secret URL route (/admin or #admin)
+  function checkAdminRoute() {
+    const path = window.location.pathname;
+    const hash = window.location.hash;
+    const isSecretRoute = path === '/admin' || path.endsWith('/admin') || hash === '#admin' || hash === '/admin';
+    
+    if (isSecretRoute) {
+      if (secretAdminBanner) secretAdminBanner.style.display = 'block';
+      // Automatically prompt Admin login/dashboard on secret route
+      setTimeout(handleOpenAdmin, 300);
+    } else {
+      if (secretAdminBanner) secretAdminBanner.style.display = 'none';
+    }
+  }
 
-      if (enteredPass === actualPass) {
-        ADMIN_AUTHENTICATED = true;
+  window.addEventListener('hashchange', checkAdminRoute);
+  window.addEventListener('popstate', checkAdminRoute);
+  checkAdminRoute();
+
+  // Google Sign-In Handler
+  const googleLoginBtn = document.getElementById('admin-google-login-btn');
+  if (googleLoginBtn) {
+    googleLoginBtn.addEventListener('click', async () => {
+      googleLoginBtn.disabled = true;
+      try {
+        const provider = new GoogleAuthProvider();
+        await signInWithPopup(auth, provider);
         closeAllModals();
         populateAdminPanelForms();
         if (adminPanelModal) adminPanelModal.classList.add('open');
-        showToast('Admin Access Granted!');
-      } else {
-        showToast('Incorrect password! Default is admin123');
+        showToast('Logged in successfully with Google & Firebase Auth!');
+      } catch (err) {
+        console.error('Google Sign-In Error:', err);
+        showToast('Google Sign-In failed: ' + err.message);
+      } finally {
+        googleLoginBtn.disabled = false;
+      }
+    });
+  }
+
+  // Admin Firebase Auth Login Submit
+  if (adminLoginForm) {
+    adminLoginForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = adminEmailInput.value.trim();
+      const password = adminPassInput.value.trim();
+
+      const submitBtn = document.getElementById('admin-login-submit-btn');
+      if (submitBtn) submitBtn.disabled = true;
+
+      try {
+        await signInWithEmailAndPassword(auth, email, password);
+        closeAllModals();
+        populateAdminPanelForms();
+        if (adminPanelModal) adminPanelModal.classList.add('open');
+        showToast('Logged in successfully with Firebase Auth!');
+      } catch (err) {
+        console.warn('Firebase Auth sign in issue:', err.code, err.message);
+        if (err.code === 'auth/operation-not-allowed') {
+          showToast('Email/Password Auth is disabled in Firebase. Use "Sign in with Google" above or enable Email/Password in Firebase Console.', 8000);
+          const loginStatus = document.getElementById('admin-login-status');
+          if (loginStatus) {
+            loginStatus.innerHTML = `<span style="color: var(--accent-red); font-size: 0.82rem;"><i class="fa-solid fa-triangle-exclamation"></i> <b>Email/Password disabled:</b> Use Google Sign-in above or turn on Email/Password in Firebase Console &gt; Authentication.</span>`;
+          }
+        } else if (err.code === 'auth/user-not-found' || err.code === 'auth/invalid-credential') {
+          try {
+            await createUserWithEmailAndPassword(auth, email, password);
+            closeAllModals();
+            populateAdminPanelForms();
+            if (adminPanelModal) adminPanelModal.classList.add('open');
+            showToast('Created admin account & logged in with Firebase Auth!');
+          } catch (createErr) {
+            console.error('Firebase Auth user creation error:', createErr);
+            if (createErr.code === 'auth/operation-not-allowed') {
+              showToast('Email/Password Auth is disabled in Firebase. Use "Sign in with Google" above or enable Email/Password in Firebase Console.', 8000);
+              const loginStatus = document.getElementById('admin-login-status');
+              if (loginStatus) {
+                loginStatus.innerHTML = `<span style="color: var(--accent-red); font-size: 0.82rem;"><i class="fa-solid fa-triangle-exclamation"></i> <b>Email/Password disabled:</b> Use Google Sign-in above or turn on Email/Password in Firebase Console &gt; Authentication.</span>`;
+              }
+            } else {
+              showToast('Auth error: ' + createErr.message);
+            }
+          }
+        } else {
+          showToast('Login error: ' + err.message);
+        }
+      } finally {
+        if (submitBtn) submitBtn.disabled = false;
+      }
+    });
+  }
+
+  // Admin Logout
+  if (logoutBtn) {
+    logoutBtn.addEventListener('click', async () => {
+      try {
+        await signOut(auth);
+        closeAllModals();
+        showToast('Logged out of Firebase Auth');
+      } catch (err) {
+        console.error('Logout error:', err);
       }
     });
   }
@@ -755,9 +1004,15 @@ function initAdminPanel() {
   const saveTopBtn = document.getElementById('admin-save-top-btn');
   const saveBottomBtn = document.getElementById('admin-save-bottom-btn');
 
-  function saveAdminChanges() {
-    // 1. General
+  async function saveAdminChanges() {
+    if (!CURRENT_USER) {
+      showToast('You must be logged in with Firebase Auth to save live changes!');
+      return;
+    }
+
     const updatedConfig = JSON.parse(JSON.stringify(window.CONFIG || {}));
+
+    // 1. General & Brand
     if (!updatedConfig.business) updatedConfig.business = {};
     updatedConfig.business.name = document.getElementById('adm-biz-name').value;
     updatedConfig.business.shortName = document.getElementById('adm-biz-shortName').value;
@@ -768,6 +1023,8 @@ function initAdminPanel() {
     updatedConfig.business.satisfiedCustomers = document.getElementById('adm-biz-satisfiedCustomers').value;
     updatedConfig.business.avgArrivalTime = document.getElementById('adm-biz-avgArrivalTime').value;
     updatedConfig.business.guarantee = document.getElementById('adm-biz-guarantee').value;
+    updatedConfig.business.logoUrl = document.getElementById('adm-biz-logoUrl').value;
+    updatedConfig.business.heroImageUrl = document.getElementById('adm-biz-heroImageUrl').value;
 
     // 2. Contact & Address
     if (!updatedConfig.contact) updatedConfig.contact = {};
@@ -804,31 +1061,53 @@ function initAdminPanel() {
     updatedConfig.pricing.baseRates.motor = parseInt(document.getElementById('adm-rate-motor').value) || 450;
     updatedConfig.pricing.baseRates.repair = parseInt(document.getElementById('adm-rate-repair').value) || 200;
 
-    // 5. Services, Gallery, Reviews lists from DOM forms
+    // 5. Lists
     updatedConfig.services = getServicesFromAdminDOM();
     updatedConfig.gallery = getGalleryFromAdminDOM();
     updatedConfig.reviews = getReviewsFromAdminDOM();
+    updatedConfig.faq = getFAQFromAdminDOM();
 
-    // 6. New Admin Password
-    const newPass = document.getElementById('adm-new-password').value.trim();
-    if (newPass) {
-      updatedConfig.adminPassword = newPass;
+    // 6. Theme Colors
+    if (!updatedConfig.themeColors) updatedConfig.themeColors = {};
+    updatedConfig.themeColors.primary = document.getElementById('adm-color-primary').value;
+    updatedConfig.themeColors.primaryHover = document.getElementById('adm-color-primaryHover').value;
+    updatedConfig.themeColors.secondary = document.getElementById('adm-color-secondary').value;
+    updatedConfig.themeColors.accentGreen = document.getElementById('adm-color-accentGreen').value;
+    updatedConfig.themeColors.accentRed = document.getElementById('adm-color-accentRed').value;
+
+    // 7. Settings Email
+    updatedConfig.adminEmail = document.getElementById('adm-email-setting').value;
+
+    try {
+      showToast('Publishing live updates to Firestore...');
+      await setDoc(doc(db, "config", "siteConfig"), updatedConfig, { merge: true });
+      closeAllModals();
+      showToast('Successfully published live to Firestore!');
+    } catch (err) {
+      console.error('Firestore save error:', err);
+      showToast('Failed to save to Firestore: ' + err.message);
     }
-
-    saveEffectiveConfig(updatedConfig);
-    closeAllModals();
-    showToast('Website business details updated & saved to local storage!');
   }
 
   if (saveTopBtn) saveTopBtn.addEventListener('click', saveAdminChanges);
   if (saveBottomBtn) saveBottomBtn.addEventListener('click', saveAdminChanges);
 
-  // Reset & Actions
-  const resetBtn = document.getElementById('admin-reset-btn');
+  // Restore Defaults
   const resetDefaultsBtn = document.getElementById('adm-reset-defaults-btn');
-
-  if (resetBtn) resetBtn.addEventListener('click', resetEffectiveConfig);
-  if (resetDefaultsBtn) resetDefaultsBtn.addEventListener('click', resetEffectiveConfig);
+  if (resetDefaultsBtn) {
+    resetDefaultsBtn.addEventListener('click', async () => {
+      if (confirm('Are you sure you want to reset all Firestore content to original factory defaults?')) {
+        try {
+          // Re-import original config.js object
+          await setDoc(doc(db, "config", "siteConfig"), window.CONFIG);
+          showToast('Factory default settings restored to Firestore!');
+          closeAllModals();
+        } catch (err) {
+          showToast('Reset failed: ' + err.message);
+        }
+      }
+    });
+  }
 
   // Export JSON
   const exportBtn = document.getElementById('adm-export-json-btn');
@@ -845,7 +1124,7 @@ function initAdminPanel() {
     });
   }
 
-  // Add Service Button
+  // Add Item Buttons
   const addServiceBtn = document.getElementById('adm-add-service-btn');
   if (addServiceBtn) {
     addServiceBtn.addEventListener('click', () => {
@@ -862,7 +1141,6 @@ function initAdminPanel() {
     });
   }
 
-  // Add Gallery Button
   const addGalleryBtn = document.getElementById('adm-add-gallery-btn');
   if (addGalleryBtn) {
     addGalleryBtn.addEventListener('click', () => {
@@ -876,7 +1154,6 @@ function initAdminPanel() {
     });
   }
 
-  // Add Review Button
   const addReviewBtn = document.getElementById('adm-add-review-btn');
   if (addReviewBtn) {
     addReviewBtn.addEventListener('click', () => {
@@ -890,12 +1167,52 @@ function initAdminPanel() {
       renderAdminReviewsList();
     });
   }
+
+  const addFaqBtn = document.getElementById('adm-add-faq-btn');
+  if (addFaqBtn) {
+    addFaqBtn.addEventListener('click', () => {
+      TEMP_FAQ.unshift({
+        id: `faq-${Date.now()}`,
+        question: 'New Question Title',
+        answer: 'Detailed answer for the electrical service question in Dhule.'
+      });
+      renderAdminFAQList();
+    });
+  }
+
+  // Theme Color Picker Sync
+  bindColorPickers();
+}
+
+function bindColorPickers() {
+  const pairs = [
+    { textId: 'adm-color-primary', pickerId: 'adm-color-primary-picker' },
+    { textId: 'adm-color-primaryHover', pickerId: 'adm-color-primaryHover-picker' },
+    { textId: 'adm-color-secondary', pickerId: 'adm-color-secondary-picker' },
+    { textId: 'adm-color-accentGreen', pickerId: 'adm-color-accentGreen-picker' },
+    { textId: 'adm-color-accentRed', pickerId: 'adm-color-accentRed-picker' }
+  ];
+
+  pairs.forEach(pair => {
+    const textEl = document.getElementById(pair.textId);
+    const pickerEl = document.getElementById(pair.pickerId);
+    if (textEl && pickerEl) {
+      pickerEl.addEventListener('input', () => {
+        textEl.value = pickerEl.value.toUpperCase();
+      });
+      textEl.addEventListener('input', () => {
+        if (/^#[0-9A-F]{6}$/i.test(textEl.value)) {
+          pickerEl.value = textEl.value;
+        }
+      });
+    }
+  });
 }
 
 function populateAdminPanelForms() {
   const c = window.CONFIG || {};
 
-  // General
+  // General & Brand
   document.getElementById('adm-biz-name').value = getProp('business.name');
   document.getElementById('adm-biz-shortName').value = getProp('business.shortName');
   document.getElementById('adm-biz-tagline').value = getProp('business.tagline');
@@ -905,8 +1222,10 @@ function populateAdminPanelForms() {
   document.getElementById('adm-biz-satisfiedCustomers').value = getProp('business.satisfiedCustomers');
   document.getElementById('adm-biz-avgArrivalTime').value = getProp('business.avgArrivalTime');
   document.getElementById('adm-biz-guarantee').value = getProp('business.guarantee');
+  document.getElementById('adm-biz-logoUrl').value = getProp('business.logoUrl');
+  document.getElementById('adm-biz-heroImageUrl').value = getProp('business.heroImageUrl');
 
-  // Contact
+  // Contact & Address
   document.getElementById('adm-contact-phone').value = getProp('contact.phone');
   document.getElementById('adm-contact-phoneDisplay').value = getProp('contact.phoneDisplay');
   document.getElementById('adm-contact-whatsappNumber').value = getProp('contact.whatsappNumber');
@@ -936,16 +1255,87 @@ function populateAdminPanelForms() {
   document.getElementById('adm-rate-motor').value = rates.motor || 450;
   document.getElementById('adm-rate-repair').value = rates.repair || 200;
 
+  // Theme Colors
+  const colors = getProp('themeColors') || {};
+  setThemeColorInput('adm-color-primary', 'adm-color-primary-picker', colors.primary || '#0F52BA');
+  setThemeColorInput('adm-color-primaryHover', 'adm-color-primaryHover-picker', colors.primaryHover || '#0A3C88');
+  setThemeColorInput('adm-color-secondary', 'adm-color-secondary-picker', colors.secondary || '#FFC107');
+  setThemeColorInput('adm-color-accentGreen', 'adm-color-accentGreen-picker', colors.accentGreen || '#10B981');
+  setThemeColorInput('adm-color-accentRed', 'adm-color-accentRed-picker', colors.accentRed || '#EF4444');
+
+  // Settings
+  document.getElementById('adm-email-setting').value = getProp('adminEmail', 'pr19021997@gmail.com');
+
   // Clone items for Admin list editing
-  TEMP_SERVICES = JSON.parse(JSON.stringify(c.services || []));
+  const defaultServices = (typeof CONFIG !== 'undefined' && Array.isArray(CONFIG.services) && CONFIG.services.length > 0)
+    ? CONFIG.services
+    : [];
+  const activeServices = (Array.isArray(c.services) && c.services.length > 0) ? c.services : defaultServices;
+
+  TEMP_SERVICES = JSON.parse(JSON.stringify(activeServices));
   TEMP_GALLERY = JSON.parse(JSON.stringify(c.gallery || []));
   TEMP_REVIEWS = JSON.parse(JSON.stringify(c.reviews || []));
+  TEMP_FAQ = JSON.parse(JSON.stringify(c.faq || []));
 
   renderAdminServicesList();
   renderAdminGalleryList();
   renderAdminReviewsList();
+  renderAdminFAQList();
+}
 
-  document.getElementById('adm-new-password').value = getProp('adminPassword', 'admin123');
+function setThemeColorInput(textId, pickerId, val) {
+  const textEl = document.getElementById(textId);
+  const pickerEl = document.getElementById(pickerId);
+  if (textEl) textEl.value = val;
+  if (pickerEl && /^#[0-9A-F]{6}$/i.test(val)) pickerEl.value = val;
+}
+
+// --- Firebase Storage Image Upload Handlers ---
+function initFirebaseStorageListeners() {
+  // 1. Logo File Upload
+  const logoFileInput = document.getElementById('adm-logo-file');
+  if (logoFileInput) {
+    logoFileInput.addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        showToast('Uploading logo to Firebase Storage...');
+        try {
+          const downloadUrl = await uploadFileToFirebaseStorage(file, 'brand/logo');
+          document.getElementById('adm-biz-logoUrl').value = downloadUrl;
+          showToast('Logo uploaded to Firebase Storage successfully!');
+        } catch (err) {
+          console.error('Logo upload error:', err);
+          showToast('Upload failed: ' + err.message);
+        }
+      }
+    });
+  }
+
+  // 2. Hero Image File Upload
+  const heroFileInput = document.getElementById('adm-hero-file');
+  if (heroFileInput) {
+    heroFileInput.addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        showToast('Uploading hero image to Firebase Storage...');
+        try {
+          const downloadUrl = await uploadFileToFirebaseStorage(file, 'brand/hero');
+          document.getElementById('adm-biz-heroImageUrl').value = downloadUrl;
+          showToast('Hero image uploaded to Firebase Storage successfully!');
+        } catch (err) {
+          console.error('Hero image upload error:', err);
+          showToast('Upload failed: ' + err.message);
+        }
+      }
+    });
+  }
+}
+
+async function uploadFileToFirebaseStorage(file, folderPath = 'uploads') {
+  const fileRef = ref(storage, `${folderPath}/${Date.now()}_${file.name}`);
+  await uploadBytes(fileRef, file);
+  const downloadUrl = await getDownloadURL(fileRef);
+  return downloadUrl;
 }
 
 // --- Render Editable Lists in Admin Panel ---
@@ -995,6 +1385,16 @@ function renderAdminServicesList() {
           <input type="text" class="adm-svc-icon" value="${s.icon || 'fa-bolt'}" />
         </div>
         <div class="admin-form-group" style="grid-column: 1 / -1;">
+          <label>Service Image URL (or Upload)</label>
+          <div style="display: flex; gap: 0.5rem; align-items: center; margin-top: 0.25rem;">
+            <input type="text" class="adm-svc-image" value="${s.image || ''}" style="flex: 1;" placeholder="https://..." />
+            <input type="file" class="adm-svc-file-input" accept="image/*" style="display: none;" id="svc-file-${idx}" data-index="${idx}" />
+            <button type="button" class="btn btn-secondary btn-sm" onclick="document.getElementById('svc-file-${idx}').click()">
+              <i class="fa-solid fa-upload"></i> Upload
+            </button>
+          </div>
+        </div>
+        <div class="admin-form-group" style="grid-column: 1 / -1;">
           <label>Description</label>
           <textarea class="adm-svc-desc" rows="2">${s.desc}</textarea>
         </div>
@@ -1007,6 +1407,28 @@ function renderAdminServicesList() {
       const index = parseInt(e.currentTarget.getAttribute('data-index'));
       TEMP_SERVICES.splice(index, 1);
       renderAdminServicesList();
+    });
+  });
+
+  // Upload Service Image file directly to Firebase Storage
+  container.querySelectorAll('.adm-svc-file-input').forEach(fileInput => {
+    fileInput.addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      const idx = e.target.getAttribute('data-index');
+      if (file) {
+        showToast('Uploading service image to Firebase Storage...');
+        try {
+          const downloadUrl = await uploadFileToFirebaseStorage(file, 'services');
+          const urlInput = container.querySelectorAll('.adm-svc-image')[idx];
+          if (urlInput) {
+            urlInput.value = downloadUrl;
+            showToast('Service image uploaded to Firebase Storage!');
+          }
+        } catch (err) {
+          console.error('Service image upload error:', err);
+          showToast('Upload error: ' + err.message);
+        }
+      }
     });
   });
 }
@@ -1023,6 +1445,7 @@ function getServicesFromAdminDOM() {
       category: card.querySelector('.adm-svc-category').value,
       tag: card.querySelector('.adm-svc-tag').value,
       icon: card.querySelector('.adm-svc-icon').value,
+      image: card.querySelector('.adm-svc-image')?.value || '',
       desc: card.querySelector('.adm-svc-desc').value
     });
   });
@@ -1035,7 +1458,7 @@ function renderAdminGalleryList() {
   if (!container) return;
 
   if (TEMP_GALLERY.length === 0) {
-    container.innerHTML = `<p style="color: var(--text-muted);">No gallery images added. Click 'Add New Image' above.</p>`;
+    container.innerHTML = `<p style="color: var(--text-muted);">No gallery images added. Click 'Add New Gallery Image' above.</p>`;
     return;
   }
 
@@ -1057,9 +1480,14 @@ function renderAdminGalleryList() {
           <input type="text" class="adm-gal-location" value="${g.location}" />
         </div>
         <div class="admin-form-group" style="grid-column: 1 / -1;">
-          <label>Image Source (URL or Upload File below)</label>
-          <input type="text" class="adm-gal-image" value="${g.image}" />
-          <input type="file" class="adm-gal-file-input" accept="image/*" style="margin-top: 0.5rem; font-size: 0.8rem;" data-index="${idx}" />
+          <label>Image Source (URL or Upload File to Firebase Storage)</label>
+          <div style="display: flex; gap: 0.5rem; align-items: center; margin-top: 0.25rem;">
+            <input type="text" class="adm-gal-image" value="${g.image}" style="flex: 1;" />
+            <input type="file" class="adm-gal-file-input" accept="image/*" style="display: none;" id="gal-file-${idx}" data-index="${idx}" />
+            <button type="button" class="btn btn-secondary btn-sm" onclick="document.getElementById('gal-file-${idx}').click()">
+              <i class="fa-solid fa-upload"></i> Upload
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -1073,21 +1501,24 @@ function renderAdminGalleryList() {
     });
   });
 
-  // Handle local file upload -> convert to base64 Data URL for offline preservation
+  // Upload Gallery File directly to Firebase Storage
   container.querySelectorAll('.adm-gal-file-input').forEach(fileInput => {
-    fileInput.addEventListener('change', (e) => {
+    fileInput.addEventListener('change', async (e) => {
       const file = e.target.files[0];
       const idx = e.target.getAttribute('data-index');
       if (file) {
-        const reader = new FileReader();
-        reader.onload = (uploadEvent) => {
+        showToast('Uploading image to Firebase Storage...');
+        try {
+          const downloadUrl = await uploadFileToFirebaseStorage(file, 'gallery');
           const urlInput = container.querySelectorAll('.adm-gal-image')[idx];
           if (urlInput) {
-            urlInput.value = uploadEvent.target.result;
-            showToast('Image uploaded and converted for offline saving!');
+            urlInput.value = downloadUrl;
+            showToast('Gallery image uploaded to Firebase Storage!');
           }
-        };
-        reader.readAsDataURL(file);
+        } catch (err) {
+          console.error('Gallery image upload error:', err);
+          showToast('Upload error: ' + err.message);
+        }
       }
     });
   });
@@ -1171,6 +1602,60 @@ function getReviewsFromAdminDOM() {
   });
 
   return reviews;
+}
+
+function renderAdminFAQList() {
+  const container = document.getElementById('adm-faq-list');
+  if (!container) return;
+
+  if (TEMP_FAQ.length === 0) {
+    container.innerHTML = `<p style="color: var(--text-muted);">No FAQ items added. Click 'Add New Question' above.</p>`;
+    return;
+  }
+
+  container.innerHTML = TEMP_FAQ.map((f, idx) => `
+    <div class="admin-item-card" data-index="${idx}">
+      <div class="admin-item-header">
+        <h4><i class="fa-solid fa-circle-question" style="color: var(--primary);"></i> Question #${idx + 1}: ${f.question}</h4>
+        <button class="btn-danger-sm adm-del-faq-btn" data-index="${idx}">
+          <i class="fa-solid fa-trash"></i> Delete
+        </button>
+      </div>
+      <div class="admin-grid-2">
+        <div class="admin-form-group" style="grid-column: 1 / -1;">
+          <label>Question Title</label>
+          <input type="text" class="adm-faq-question" value="${f.question}" />
+        </div>
+        <div class="admin-form-group" style="grid-column: 1 / -1;">
+          <label>Detailed Answer</label>
+          <textarea class="adm-faq-answer" rows="3">${f.answer}</textarea>
+        </div>
+      </div>
+    </div>
+  `).join('');
+
+  container.querySelectorAll('.adm-del-faq-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const index = parseInt(e.currentTarget.getAttribute('data-index'));
+      TEMP_FAQ.splice(index, 1);
+      renderAdminFAQList();
+    });
+  });
+}
+
+function getFAQFromAdminDOM() {
+  const cards = document.querySelectorAll('#adm-faq-list .admin-item-card');
+  const faqs = [];
+
+  cards.forEach((card, idx) => {
+    faqs.push({
+      id: TEMP_FAQ[idx]?.id || `faq-${idx}-${Date.now()}`,
+      question: card.querySelector('.adm-faq-question').value,
+      answer: card.querySelector('.adm-faq-answer').value
+    });
+  });
+
+  return faqs;
 }
 
 // --- Toast Notification Helper ---

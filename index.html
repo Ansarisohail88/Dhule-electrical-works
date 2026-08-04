@@ -32,12 +32,12 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
 
   <!-- External Separate Stylesheet -->
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="/style.css" />
 
   <!-- Central Configuration JS File -->
-  <script src="config.js"></script>
+  <script src="/config.js"></script>
   <!-- External Separate JavaScript File -->
-  <script src="script.js" defer></script>
+  <script type="module" src="/script.js"></script>
 
   <!-- Schema.org LocalBusiness JSON-LD for SEO -->
   <script type="application/ld+json">
@@ -48,14 +48,14 @@
     "image": "https://dhuleelectrical.com/assets/images/electrician_hero.jpg",
     "@id": "https://dhuleelectrical.com/#business",
     "url": "https://dhuleelectrical.com/",
-    "telephone": "+918830302059",
+    "telephone": "+919876543210",
     "priceRange": "₹₹",
     "address": {
       "@type": "PostalAddress",
-      "streetAddress": "plot No. 12, Near Jama Masjid, Firdos Nagar,Dhule,India",
+      "streetAddress": "Shop No. 12, Near Chhatrapati Shivaji Maharaj Statue, Deopur",
       "addressLocality": "Dhule",
       "addressRegion": "Maharashtra",
-      "postalCode": "424001",
+      "postalCode": "424002",
       "addressCountry": "IN"
     },
     "geo": {
@@ -68,8 +68,8 @@
       "dayOfWeek": [
         "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"
       ],
-      "opens": "10:00",
-      "closes": "22:00"
+      "opens": "00:00",
+      "closes": "23:59"
     },
     "areaServed": [
       "Deopur", "Sakri Road", "Mohadi", "Parola Road", "Agra Road", "Awadhan", "Chittod Road", "Walwadi", "Nakane Road", "Gondur", "Dhule City"
@@ -99,14 +99,19 @@
         <span><i class="fa-solid fa-location-dot"></i> <span data-config="location.landmark">Deopur & Sakri Road, Dhule</span></span>
       </div>
       <div class="top-info">
-        <button id="open-admin-btn" class="admin-trigger-btn" style="margin-right: 0.5rem; cursor: pointer;">
-          <i class="fa-solid fa-lock"></i> Admin Panel
-        </button>
-        <a href="tel:+918830302059" style="color: #FFF; text-decoration: none; font-weight: 700;">
-          <i class="fa-solid fa-phone" style="color: var(--secondary);"></i> Emergency Call: <span data-config="contact.phoneDisplay">+91 8830302059</span>
+        <a href="tel:+919876543210" style="color: #FFF; text-decoration: none; font-weight: 700;">
+          <i class="fa-solid fa-phone" style="color: var(--secondary);"></i> Emergency Call: <span data-config="contact.phoneDisplay">+91 98765 43210</span>
         </a>
       </div>
     </div>
+  </div>
+
+  <!-- Secret Admin Route Banner (Only visible on /admin or #admin) -->
+  <div id="secret-admin-banner" style="display: none; background: #0F172A; color: #FFF; border-bottom: 2px solid var(--primary); padding: 0.5rem 1rem; text-align: center; font-size: 0.9rem;">
+    <span style="margin-right: 1rem;"><i class="fa-solid fa-user-shield" style="color: var(--secondary);"></i> Secret Admin Route Detected (<b>/admin</b>)</span>
+    <button id="secret-admin-login-btn" class="btn btn-primary btn-sm" style="padding: 0.25rem 0.75rem; font-size: 0.82rem;">
+      <i class="fa-solid fa-key"></i> Open Admin Portal
+    </button>
   </div>
 
   <!-- Sticky Header Navigation -->
@@ -141,7 +146,7 @@
           </button>
 
           <!-- Emergency Call Button -->
-          <a href="tel:+918830302059" class="btn btn-secondary btn-sm open-emergency-btn" style="display: inline-flex;">
+          <a href="tel:+919876543210" class="btn btn-secondary btn-sm open-emergency-btn" style="display: inline-flex;">
             <i class="fa-solid fa-phone-volume"></i> Emergency
           </a>
 
@@ -171,10 +176,10 @@
           </p>
 
           <div class="hero-cta-group">
-            <a href="tel:+918830302059" class="btn btn-secondary btn-lg">
-              <i class="fa-solid fa-phone"></i> Call Now (+91 8830302059)
+            <a href="tel:+919876543210" class="btn btn-secondary btn-lg">
+              <i class="fa-solid fa-phone"></i> Call Now (+91 98765 43210)
             </a>
-            <a href="https://wa.me/918830302059?text=Hi%20Dhule%20Electrical%20Works,%20I%20need%20electrician%20service" target="_blank" rel="noopener" class="btn btn-primary btn-lg" style="background: #25D366; border: none;">
+            <a href="https://wa.me/919876543210?text=Hi%20Dhule%20Electrical%20Works,%20I%20need%20electrician%20service" target="_blank" rel="noopener" class="btn btn-primary btn-lg" style="background: #25D366; border: none;">
               <i class="fa-brands fa-whatsapp"></i> WhatsApp Chat
             </a>
             <button class="btn btn-outline btn-lg open-booking-btn" style="color: #FFF; border-color: rgba(255,255,255,0.4);">
@@ -192,11 +197,11 @@
             <form id="hero-quick-form" onsubmit="event.preventDefault(); openBookingModal('General Electrical Service');">
               <div class="form-group">
                 <label for="hero-name">Full Name</label>
-                <input type="text" id="hero-name" class="form-control" placeholder="e.g. ansari sohail" required />
+                <input type="text" id="hero-name" class="form-control" placeholder="e.g. Rahul Patil" required />
               </div>
               <div class="form-group">
                 <label for="hero-phone">Mobile Number</label>
-                <input type="tel" id="hero-phone" class="form-control" placeholder="e.g. 8830302059" required />
+                <input type="tel" id="hero-phone" class="form-control" placeholder="e.g. 9876543210" required />
               </div>
               <div class="form-group">
                 <label for="hero-area">Location in Dhule</label>
@@ -526,46 +531,8 @@
         <p class="section-sub">Clear information about our service times, pricing, and warranties.</p>
       </div>
 
-      <div class="faq-accordion">
-        <div class="faq-item active">
-          <button class="faq-question">
-            <span>How fast can your electrician arrive in Deopur or Sakri Road?</span>
-            <i class="fa-solid fa-chevron-down"></i>
-          </button>
-          <div class="faq-answer">
-            <p>We maintain dedicated emergency wiremen stationed across Deopur, Sakri Road, Mohadi, and Parola Road. Our average arrival time is 20 to 25 minutes from the moment you confirm your call or WhatsApp request.</p>
-          </div>
-        </div>
-
-        <div class="faq-item">
-          <button class="faq-question">
-            <span>Are emergency service calls available late at night in Dhule?</span>
-            <i class="fa-solid fa-chevron-down"></i>
-          </button>
-          <div class="faq-answer">
-            <p>Yes, absolutely! We provide 24 hours x 7 days emergency power restoration for short circuits, main fuse burnt-outs, sparking boards, and inverter failures.</p>
-          </div>
-        </div>
-
-        <div class="faq-item">
-          <button class="faq-question">
-            <span>Do you provide wiring materials or can I buy my own?</span>
-            <i class="fa-solid fa-chevron-down"></i>
-          </button>
-          <div class="faq-answer">
-            <p>You can choose either option! We carry genuine ISI-marked materials (Finolex, Polycab, Havells, Anchor, Legrand) at wholesale market rates, or we can perform installation labor using your supplied materials.</p>
-          </div>
-        </div>
-
-        <div class="faq-item">
-          <button class="faq-question">
-            <span>Is there a warranty on your electrical repair work?</span>
-            <i class="fa-solid fa-chevron-down"></i>
-          </button>
-          <div class="faq-answer">
-            <p>Yes! Every complete installation and wiring job performed by Dhule Electrical Works comes with a 6-month service warranty on labor and workmanship.</p>
-          </div>
-        </div>
+      <div class="faq-accordion" id="faq-accordion-container">
+        <!-- Dynamically rendered FAQs from Firestore -->
       </div>
     </div>
   </section>
@@ -615,7 +582,7 @@
             </div>
             <div class="contact-item-text">
               <h4>Phone & Emergency Helpline</h4>
-              <p><a href="tel:+918830302059" style="font-weight: 700; color: var(--primary);" data-config="contact.phoneDisplay">+91 88303 02059</a> (24x7 Available)</p>
+              <p><a href="tel:+919876543210" style="font-weight: 700; color: var(--primary);" data-config="contact.phoneDisplay">+91 98765 43210</a> (24x7 Available)</p>
             </div>
           </div>
 
@@ -625,7 +592,7 @@
             </div>
             <div class="contact-item-text">
               <h4>Direct WhatsApp Support</h4>
-              <p><a href="https://wa.me/918830302059?text=Hi%20Dhule%20Electrical%20Works" target="_blank" rel="noopener">Chat on WhatsApp (<span data-config="contact.phoneDisplay">+91 88303 02059</span>)</a></p>
+              <p><a href="https://wa.me/919876543210?text=Hi%20Dhule%20Electrical%20Works" target="_blank" rel="noopener">Chat on WhatsApp (<span data-config="contact.phoneDisplay">+91 98765 43210</span>)</a></p>
             </div>
           </div>
 
@@ -635,7 +602,7 @@
             </div>
             <div class="contact-item-text">
               <h4>Shop & Office Address</h4>
-              <p class="config-address" data-config="location.address">Plot No 12, Near Jama Masjid, Firdos Nagar, Dhule.</p>
+              <p class="config-address" data-config="location.address">Shop No. 12, Near Chhatrapati Shivaji Maharaj Statue, Deopur, Dhule, Maharashtra 424002, India.</p>
             </div>
           </div>
 
@@ -666,7 +633,7 @@
 
             <div class="form-group">
               <label for="contact-phone">Phone Number</label>
-              <input type="tel" id="contact-phone" class="form-control" placeholder="e.g. 8830302059" required />
+              <input type="tel" id="contact-phone" class="form-control" placeholder="e.g. 9876543210" required />
             </div>
 
             <div class="form-group">
@@ -704,8 +671,8 @@
             Dhule's premier 24x7 licensed electrical services contractor. Dedicated to safety, genuine quality materials, and transparent rates.
           </p>
           <div style="display: flex; gap: 0.75rem;">
-            <a href="tel:+918830302059" class="btn btn-secondary btn-sm"><i class="fa-solid fa-phone"></i> Call Now</a>
-            <a href="https://wa.me/918830302059" target="_blank" rel="noopener" class="btn btn-primary btn-sm" style="background: #25D366; border: none;"><i class="fa-brands fa-whatsapp"></i> WhatsApp</a>
+            <a href="tel:+919876543210" class="btn btn-secondary btn-sm"><i class="fa-solid fa-phone"></i> Call Now</a>
+            <a href="https://wa.me/919876543210" target="_blank" rel="noopener" class="btn btn-primary btn-sm" style="background: #25D366; border: none;"><i class="fa-brands fa-whatsapp"></i> WhatsApp</a>
           </div>
         </div>
 
@@ -736,7 +703,7 @@
         <div class="footer-col">
           <h4>Dhule Office</h4>
           <p style="font-size: 0.88rem; line-height: 1.6; margin-bottom: 0.75rem;" class="config-address" data-config="location.address">
-            plot No 12, Near Jama Masjid, Firdos Nagar, Dhule, 424001.
+            Shop 12, Near Chhatrapati Shivaji Maharaj Statue, Deopur, Dhule, Maharashtra 424002.
           </p>
           <p style="font-size: 0.88rem; color: var(--secondary); font-weight: 700;">
             <i class="fa-solid fa-clock"></i> Open 24 Hours / 7 Days
@@ -757,10 +724,10 @@
 
   <!-- Floating Action Buttons -->
   <div class="floating-actions-bar">
-    <a href="https://wa.me/918830302059?text=Hi%20Dhule%20Electrical%20Works,%20I%20need%20electrician%20service" target="_blank" rel="noopener" class="float-btn float-whatsapp" title="Chat on WhatsApp">
+    <a href="https://wa.me/919876543210?text=Hi%20Dhule%20Electrical%20Works,%20I%20need%20electrician%20service" target="_blank" rel="noopener" class="float-btn float-whatsapp" title="Chat on WhatsApp">
       <i class="fa-brands fa-whatsapp"></i>
     </a>
-    <a href="tel:+918830302059" class="float-btn float-call" title="Call Electrician">
+    <a href="tel:+919876543210" class="float-btn float-call" title="Call Electrician">
       <i class="fa-solid fa-phone"></i>
     </a>
     <a href="#" id="scroll-top-btn" class="float-btn float-top" title="Scroll To Top">
@@ -771,10 +738,10 @@
   <!-- Mobile Bottom Quick Navigation Bar -->
   <div class="mobile-bottom-bar">
     <div class="mobile-bottom-grid">
-      <a href="tel:+918830302059" class="btn btn-primary btn-sm" style="border-radius: var(--radius-sm);">
+      <a href="tel:+919876543210" class="btn btn-primary btn-sm" style="border-radius: var(--radius-sm);">
         <i class="fa-solid fa-phone"></i> Call
       </a>
-      <a href="https://wa.me/918830302059?text=Hi%20Dhule%20Electrical%20Works" target="_blank" rel="noopener" class="btn btn-secondary btn-sm" style="border-radius: var(--radius-sm);">
+      <a href="https://wa.me/919876543210?text=Hi%20Dhule%20Electrical%20Works" target="_blank" rel="noopener" class="btn btn-secondary btn-sm" style="border-radius: var(--radius-sm);">
         <i class="fa-brands fa-whatsapp"></i> WhatsApp
       </a>
       <button class="btn btn-danger btn-sm open-emergency-btn" style="border-radius: var(--radius-sm);">
@@ -803,7 +770,7 @@
 
         <div class="form-group">
           <label for="booking-phone">Phone Number</label>
-          <input type="tel" id="booking-phone" class="form-control" placeholder="e.g. 8830302059" required />
+          <input type="tel" id="booking-phone" class="form-control" placeholder="e.g. 9876543210" required />
         </div>
 
         <div class="form-group">
@@ -838,10 +805,10 @@
         <span style="font-size: 2rem; font-weight: 800; color: var(--primary);">20 - 25 MINUTES</span>
       </div>
 
-      <a href="tel:+918830302059" class="btn btn-danger btn-lg" style="width: 100%; margin-bottom: 0.75rem;">
-        <i class="fa-solid fa-phone-volume"></i> Call Now (+91 88303 02059)
+      <a href="tel:+919876543210" class="btn btn-danger btn-lg" style="width: 100%; margin-bottom: 0.75rem;">
+        <i class="fa-solid fa-phone-volume"></i> Call Now (+91 98765 43210)
       </a>
-      <a href="https://wa.me/918830302059?text=EMERGENCY%3A%20Need%20immediate%20electrician%20in%20Dhule" target="_blank" rel="noopener" class="btn btn-outline" style="width: 100%;">
+      <a href="https://wa.me/919876543210?text=EMERGENCY%3A%20Need%20immediate%20electrician%20in%20Dhule" target="_blank" rel="noopener" class="btn btn-outline" style="width: 100%;">
         <i class="fa-brands fa-whatsapp"></i> WhatsApp Emergency Alert
       </a>
     </div>
@@ -880,29 +847,45 @@
     </div>
   </div>
 
-  <!-- Modal 5: Admin Password Protection Modal -->
+  <!-- Modal 5: Admin Firebase Auth Protection Modal -->
   <div id="admin-login-modal" class="modal-overlay">
-    <div class="modal-content-card" style="max-width: 420px; border-top: 5px solid var(--primary);">
+    <div class="modal-content-card" style="max-width: 440px; border-top: 5px solid var(--primary);">
       <button class="modal-close-btn">&times;</button>
       <div class="text-center" style="margin-bottom: 1.25rem;">
         <div style="width: 54px; height: 54px; border-radius: 50%; background: rgba(15, 82, 186, 0.1); color: var(--primary); display: inline-flex; align-items: center; justify-content: center; font-size: 1.5rem; margin-bottom: 0.75rem;">
           <i class="fa-solid fa-user-shield"></i>
         </div>
-        <h3 style="margin-bottom: 0.25rem;">Admin Panel Login</h3>
-        <p style="font-size: 0.85rem; color: var(--text-muted);">Enter password to manage website business details.</p>
+        <h3 style="margin-bottom: 0.25rem;">Admin Cloud Panel</h3>
+        <p style="font-size: 0.85rem; color: var(--text-muted);">Log in with Firebase Auth to edit live website content.</p>
+      </div>
+
+      <div style="margin-bottom: 1rem;">
+        <button type="button" id="admin-google-login-btn" class="btn btn-secondary btn-lg" style="width: 100%; border: 1px solid var(--border-color); background: #FFF; color: #1E293B; display: flex; align-items: center; justify-content: center; gap: 0.5rem; font-weight: 600;">
+          <i class="fa-brands fa-google" style="color: #4285F4; font-size: 1.1rem;"></i> Sign in with Google (Instant Auth)
+        </button>
+      </div>
+
+      <div style="display: flex; align-items: center; margin: 1rem 0; text-align: center; color: var(--text-muted); font-size: 0.8rem;">
+        <span style="flex: 1; border-bottom: 1px solid var(--border-color);"></span>
+        <span style="padding: 0 0.5rem;">OR EMAIL &amp; PASSWORD</span>
+        <span style="flex: 1; border-bottom: 1px solid var(--border-color);"></span>
       </div>
 
       <form id="admin-login-form">
         <div class="form-group">
-          <label for="admin-pass-input">Admin Password</label>
-          <input type="password" id="admin-pass-input" class="form-control" placeholder="Enter password (default: admin123)" required />
+          <label for="admin-email-input">Admin Email</label>
+          <input type="email" id="admin-email-input" class="form-control" value="pr19021997@gmail.com" required />
         </div>
-        <button type="submit" class="btn btn-primary btn-lg" style="width: 100%;">
-          <i class="fa-solid fa-key"></i> Unlock Admin Panel
+        <div class="form-group">
+          <label for="admin-pass-input">Admin Password</label>
+          <input type="password" id="admin-pass-input" class="form-control" placeholder="Enter password" required />
+        </div>
+        <button type="submit" id="admin-login-submit-btn" class="btn btn-primary btn-lg" style="width: 100%;">
+          <i class="fa-solid fa-key"></i> Log In with Firebase Auth
         </button>
-        <p style="font-size: 0.78rem; color: var(--text-muted); text-align: center; margin-top: 0.85rem;">
-          <i class="fa-solid fa-circle-info"></i> Default password is <strong>admin123</strong>. You can change it inside the Admin Panel.
-        </p>
+        <div id="admin-login-status" style="font-size: 0.8rem; margin-top: 0.75rem; text-align: center; color: var(--text-muted);">
+          <i class="fa-solid fa-lock"></i> Protected by Firebase Firestore & Auth
+        </div>
       </form>
     </div>
   </div>
@@ -914,34 +897,41 @@
       
       <div class="admin-header">
         <div class="admin-header-title">
-          <i class="fa-solid fa-sliders" style="font-size: 1.5rem; color: var(--primary);"></i>
+          <i class="fa-solid fa-cloud-bolt" style="font-size: 1.5rem; color: var(--primary);"></i>
           <div>
-            <h3>Website Content & Business Manager</h3>
-            <span style="font-size: 0.82rem; color: var(--text-muted);">All edits automatically update the live website and save in local storage.</span>
+            <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+              <h3 style="margin:0;">Cloud Business Content Manager</h3>
+              <span id="admin-auth-status-badge" style="font-size: 0.75rem; background: rgba(16, 185, 129, 0.15); color: var(--accent-green); padding: 0.2rem 0.5rem; border-radius: 99px; font-weight: 700;">
+                <i class="fa-solid fa-circle-check"></i> Firebase Live Sync
+              </span>
+            </div>
+            <span style="font-size: 0.82rem; color: var(--text-muted);">Edits are instantly broadcasted to all website visitors via Firestore.</span>
           </div>
         </div>
-        <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-          <button id="admin-reset-btn" class="btn btn-outline btn-sm" style="border-color: var(--accent-red); color: var(--accent-red);">
-            <i class="fa-solid fa-rotate-left"></i> Reset Defaults
+        <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center;">
+          <button id="admin-logout-btn" class="btn btn-outline btn-sm" style="border-color: var(--border-color); color: var(--text-muted);">
+            <i class="fa-solid fa-right-from-bracket"></i> Logout
           </button>
           <button id="admin-save-top-btn" class="btn btn-primary btn-sm">
-            <i class="fa-solid fa-floppy-disk"></i> Save All Changes
+            <i class="fa-solid fa-cloud-arrow-up"></i> Save & Publish Live
           </button>
         </div>
       </div>
 
       <!-- Navigation Tabs -->
       <div class="admin-nav-tabs">
-        <button class="admin-tab-btn active" data-tab="tab-general"><i class="fa-solid fa-building"></i> General Info</button>
+        <button class="admin-tab-btn active" data-tab="tab-general"><i class="fa-solid fa-building"></i> General & Brand</button>
         <button class="admin-tab-btn" data-tab="tab-contact"><i class="fa-solid fa-phone"></i> Contact & Address</button>
-        <button class="admin-tab-btn" data-tab="tab-hours"><i class="fa-solid fa-clock"></i> Business Hours</button>
+        <button class="admin-tab-btn" data-tab="tab-hours"><i class="fa-solid fa-clock"></i> Hours</button>
         <button class="admin-tab-btn" data-tab="tab-services"><i class="fa-solid fa-wrench"></i> Services & Prices</button>
-        <button class="admin-tab-btn" data-tab="tab-gallery"><i class="fa-solid fa-images"></i> Gallery Portfolio</button>
+        <button class="admin-tab-btn" data-tab="tab-gallery"><i class="fa-solid fa-images"></i> Gallery</button>
         <button class="admin-tab-btn" data-tab="tab-reviews"><i class="fa-solid fa-star"></i> Reviews</button>
-        <button class="admin-tab-btn" data-tab="tab-settings"><i class="fa-solid fa-gear"></i> Settings & Password</button>
+        <button class="admin-tab-btn" data-tab="tab-faq"><i class="fa-solid fa-circle-question"></i> FAQ</button>
+        <button class="admin-tab-btn" data-tab="tab-theme"><i class="fa-solid fa-palette"></i> Theme Colors</button>
+        <button class="admin-tab-btn" data-tab="tab-settings"><i class="fa-solid fa-gear"></i> Settings</button>
       </div>
 
-      <!-- Tab 1: General Info -->
+      <!-- Tab 1: General Info & Brand Logo / Hero Image -->
       <div id="tab-general" class="admin-tab-content active">
         <div class="admin-grid-2">
           <div class="admin-form-group">
@@ -980,6 +970,32 @@
             <label>Guarantee Statement</label>
             <input type="text" id="adm-biz-guarantee" />
           </div>
+
+          <!-- Logo Upload to Firebase Storage -->
+          <div class="admin-form-group" style="grid-column: 1 / -1; background: var(--bg-elevated); padding: 1rem; border-radius: var(--radius-md); border: 1px dashed var(--border-color);">
+            <label style="font-weight: 700; color: var(--primary);"><i class="fa-solid fa-cloud-arrow-up"></i> Business Logo (Firebase Storage Upload)</label>
+            <div style="display: flex; gap: 1rem; align-items: center; margin-top: 0.5rem; flex-wrap: wrap;">
+              <input type="text" id="adm-biz-logoUrl" placeholder="Logo Image URL" style="flex: 1;" />
+              <input type="file" id="adm-logo-file" accept="image/*" style="display: none;" />
+              <button type="button" class="btn btn-secondary btn-sm" onclick="document.getElementById('adm-logo-file').click()">
+                <i class="fa-solid fa-upload"></i> Upload Logo
+              </button>
+            </div>
+            <p style="font-size: 0.78rem; color: var(--text-muted); margin-top: 0.35rem;">Selecting a file uploads it directly to Firebase Storage bucket and sets the public URL.</p>
+          </div>
+
+          <!-- Hero Image Upload to Firebase Storage -->
+          <div class="admin-form-group" style="grid-column: 1 / -1; background: var(--bg-elevated); padding: 1rem; border-radius: var(--radius-md); border: 1px dashed var(--border-color);">
+            <label style="font-weight: 700; color: var(--primary);"><i class="fa-solid fa-image"></i> Hero Image (Firebase Storage Upload)</label>
+            <div style="display: flex; gap: 1rem; align-items: center; margin-top: 0.5rem; flex-wrap: wrap;">
+              <input type="text" id="adm-biz-heroImageUrl" placeholder="Hero Image URL" style="flex: 1;" />
+              <input type="file" id="adm-hero-file" accept="image/*" style="display: none;" />
+              <button type="button" class="btn btn-secondary btn-sm" onclick="document.getElementById('adm-hero-file').click()">
+                <i class="fa-solid fa-upload"></i> Upload Hero Image
+              </button>
+            </div>
+            <p style="font-size: 0.78rem; color: var(--text-muted); margin-top: 0.35rem;">Image used for hero banner & social previews.</p>
+          </div>
         </div>
       </div>
 
@@ -987,15 +1003,15 @@
       <div id="tab-contact" class="admin-tab-content">
         <div class="admin-grid-2">
           <div class="admin-form-group">
-            <label>Primary Phone Number (raw e.g. +918830302059)</label>
+            <label>Primary Phone Number (raw e.g. +919876543210)</label>
             <input type="text" id="adm-contact-phone" />
           </div>
           <div class="admin-form-group">
-            <label>Phone Display Format (e.g. +91 88303 02059)</label>
+            <label>Phone Display Format (e.g. +91 98765 43210)</label>
             <input type="text" id="adm-contact-phoneDisplay" />
           </div>
           <div class="admin-form-group">
-            <label>WhatsApp Number (with country code e.g. 918830302059)</label>
+            <label>WhatsApp Number (with country code e.g. 919876543210)</label>
             <input type="text" id="adm-contact-whatsappNumber" />
           </div>
           <div class="admin-form-group">
@@ -1097,12 +1113,12 @@
         </div>
       </div>
 
-      <!-- Tab 5: Gallery Portfolio -->
+      <!-- Tab 5: Gallery Portfolio with Firebase Storage -->
       <div id="tab-gallery" class="admin-tab-content">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
           <h4 style="margin: 0;">Manage Gallery Images</h4>
           <button id="adm-add-gallery-btn" class="btn btn-secondary btn-sm">
-            <i class="fa-solid fa-plus"></i> Add New Image
+            <i class="fa-solid fa-plus"></i> Add New Gallery Image
           </button>
         </div>
 
@@ -1121,9 +1137,67 @@
         <div id="adm-reviews-list"></div>
       </div>
 
-      <!-- Tab 7: Settings & Password -->
+      <!-- Tab 7: Frequently Asked Questions (FAQ) -->
+      <div id="tab-faq" class="admin-tab-content">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+          <h4 style="margin: 0;">Manage FAQ Accordion</h4>
+          <button id="adm-add-faq-btn" class="btn btn-secondary btn-sm">
+            <i class="fa-solid fa-plus"></i> Add New Question
+          </button>
+        </div>
+
+        <div id="adm-faq-list"></div>
+      </div>
+
+      <!-- Tab 8: Theme Colors -->
+      <div id="tab-theme" class="admin-tab-content">
+        <h4 style="margin-bottom: 1rem;"><i class="fa-solid fa-palette" style="color: var(--primary);"></i> Customize Website Theme Colors</h4>
+        <div class="admin-grid-2">
+          <div class="admin-form-group">
+            <label>Primary Brand Color (Electric Blue)</label>
+            <div style="display: flex; gap: 0.5rem; align-items: center;">
+              <input type="color" id="adm-color-primary-picker" style="width: 48px; height: 38px; padding: 2px; border-radius: var(--radius-sm); border: 1px solid var(--border-color); cursor: pointer;" />
+              <input type="text" id="adm-color-primary" placeholder="#0F52BA" />
+            </div>
+          </div>
+          <div class="admin-form-group">
+            <label>Primary Hover Color</label>
+            <div style="display: flex; gap: 0.5rem; align-items: center;">
+              <input type="color" id="adm-color-primaryHover-picker" style="width: 48px; height: 38px; padding: 2px; border-radius: var(--radius-sm); border: 1px solid var(--border-color); cursor: pointer;" />
+              <input type="text" id="adm-color-primaryHover" placeholder="#0A3C88" />
+            </div>
+          </div>
+          <div class="admin-form-group">
+            <label>Secondary Accent Color (Safety Yellow)</label>
+            <div style="display: flex; gap: 0.5rem; align-items: center;">
+              <input type="color" id="adm-color-secondary-picker" style="width: 48px; height: 38px; padding: 2px; border-radius: var(--radius-sm); border: 1px solid var(--border-color); cursor: pointer;" />
+              <input type="text" id="adm-color-secondary" placeholder="#FFC107" />
+            </div>
+          </div>
+          <div class="admin-form-group">
+            <label>Success Green</label>
+            <div style="display: flex; gap: 0.5rem; align-items: center;">
+              <input type="color" id="adm-color-accentGreen-picker" style="width: 48px; height: 38px; padding: 2px; border-radius: var(--radius-sm); border: 1px solid var(--border-color); cursor: pointer;" />
+              <input type="text" id="adm-color-accentGreen" placeholder="#10B981" />
+            </div>
+          </div>
+          <div class="admin-form-group">
+            <label>Emergency Alert Red</label>
+            <div style="display: flex; gap: 0.5rem; align-items: center;">
+              <input type="color" id="adm-color-accentRed-picker" style="width: 48px; height: 38px; padding: 2px; border-radius: var(--radius-sm); border: 1px solid var(--border-color); cursor: pointer;" />
+              <input type="text" id="adm-color-accentRed" placeholder="#EF4444" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab 9: Settings & Firebase Password -->
       <div id="tab-settings" class="admin-tab-content">
         <div class="admin-grid-2">
+          <div class="admin-form-group">
+            <label>Admin Firebase Auth Email</label>
+            <input type="email" id="adm-email-setting" value="pr19021997@gmail.com" />
+          </div>
           <div class="admin-form-group">
             <label>Change Admin Password</label>
             <input type="password" id="adm-new-password" placeholder="Enter new password" />
@@ -1131,14 +1205,14 @@
         </div>
 
         <div style="margin-top: 1.5rem; background: var(--bg-elevated); padding: 1.25rem; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
-          <h4>Backup & Configuration Actions</h4>
-          <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">Export configuration as JSON or restore factory defaults anytime.</p>
+          <h4>Firebase Database & Storage Sync</h4>
+          <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">Connected Firebase Project: <strong id="adm-firebase-proj-id">long-lattice-86pck</strong></p>
           <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
             <button id="adm-export-json-btn" class="btn btn-outline btn-sm">
               <i class="fa-solid fa-download"></i> Export Config JSON
             </button>
             <button id="adm-reset-defaults-btn" class="btn btn-outline btn-sm" style="color: var(--accent-red); border-color: var(--accent-red);">
-              <i class="fa-solid fa-rotate-left"></i> Restore Factory Defaults
+              <i class="fa-solid fa-rotate-left"></i> Restore Factory Defaults to Firestore
             </button>
           </div>
         </div>
@@ -1147,12 +1221,12 @@
       <!-- Modal Footer -->
       <div class="admin-footer-actions">
         <span style="font-size: 0.8rem; color: var(--text-muted);">
-          <i class="fa-solid fa-floppy-disk"></i> Saves instantly to browser local storage. Works offline.
+          <i class="fa-solid fa-cloud-check"></i> Changes publish instantly to Firestore & Firebase Storage.
         </span>
         <div style="display: flex; gap: 0.5rem;">
           <button class="btn btn-outline modal-close-btn-action">Cancel / Close</button>
           <button id="admin-save-bottom-btn" class="btn btn-primary">
-            <i class="fa-solid fa-check"></i> Save & Apply All Changes
+            <i class="fa-solid fa-cloud-arrow-up"></i> Save & Apply All Changes
           </button>
         </div>
       </div>

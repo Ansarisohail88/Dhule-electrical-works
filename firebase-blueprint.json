@@ -1,0 +1,19 @@
+{
+  "entities": {
+    "siteConfig": {
+      "path": "config/siteConfig",
+      "schema": {
+        "business": "map",
+        "contact": "map",
+        "location": "map",
+        "businessHours": "map",
+        "pricing": "map",
+        "themeColors": "map",
+        "faq": "array",
+        "services": "array",
+        "gallery": "array",
+        "reviews": "array"
+      }
+    }
+  }
+}
