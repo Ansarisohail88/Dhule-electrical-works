@@ -28,14 +28,14 @@ import {
 } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js';
 
 // --- Firebase Configuration ---
+
 const firebaseConfig = {
-  projectId: "long-lattice-86pck",
-  appId: "1:387372636455:web:7d487775d4c766fd703102",
-  apiKey: "AIzaSyBHbi-D5v5Flvuq3pOZlQWAhSX0magsa8A",
-  authDomain: "long-lattice-86pck.firebaseapp.com",
-  firestoreDatabaseId: "ai-studio-dhuleelectricalw-4bd19ed7-5aed-412a-bb96-7e1d742655c6",
-  storageBucket: "long-lattice-86pck.firebasestorage.app",
-  messagingSenderId: "387372636455"
+  apiKey: "AIzaSyCRwZ-hAx8gg9ZdunMDEJcHDKGx2vLI_q8",
+  authDomain: "dhule-electrical.firebaseapp.com",
+  projectId: "dhule-electrical",
+  storageBucket: "dhule-electrical.firebasestorage.app",
+  messagingSenderId: "386096215168",
+  appId: "1:386096215168:web:ae596fa7b499ecd2d5e265"
 };
 
 // Initialize Firebase
