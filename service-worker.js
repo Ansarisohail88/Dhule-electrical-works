@@ -1,6 +1,6 @@
 /* Service Worker for Dhule Electrical Works PWA */
 
-const CACHE_NAME = 'dhule-electrical-v1';
+const CACHE_NAME = 'dhule-electrical-v2';
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
@@ -11,6 +11,7 @@ const ASSETS_TO_CACHE = [
 
 // Install Event
 self.addEventListener('install', (event) => {
+  self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
       console.log('[Service Worker] Caching static assets');
