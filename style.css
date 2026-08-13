@@ -1820,6 +1820,13 @@ body {
 @keyframes hideLoader {
     to {
         opacity: 0;
+
+       /* Force Hide Preloader */
+#preloader {
+    display: none !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
         visibility: hidden;
         pointer-events: none;
     }
