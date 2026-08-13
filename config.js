@@ -20,19 +20,19 @@ const CONFIG = {
   },
 
   contact: {
-    phone: "+919876543210",
-    phoneDisplay: "+91 98765 43210",
-    whatsappNumber: "919876543210",
+    phone: "+918830302059",
+    phoneDisplay: "+91 8830302059",
+    whatsappNumber: "918830302059",
     email: "contact@dhuleelectrical.com",
-    emergencyHelpline: "+91 98765 43210"
+    emergencyHelpline: "+91 8830302059"
   },
 
   location: {
-    address: "Shop No. 12, Near Chhatrapati Shivaji Maharaj Statue, Deopur, Dhule, Maharashtra 424002, India",
-    landmark: "Near Chhatrapati Shivaji Maharaj Statue, Deopur",
+    address: "plot No 12, Near Jama Masjid, Firdos Nagar, Dhule, Maharashtra 424001, India",
+    landmark: "Near Jama Masjid Firdos Nagar, Dhule",
     city: "Dhule",
     state: "Maharashtra",
-    pincode: "424002",
+    pincode: "424001",
     coverageAreas: [
       "Deopur",
       "Sakri Road",
@@ -66,7 +66,7 @@ const CONFIG = {
   },
 
   socialMedia: {
-    whatsapp: "https://wa.me/919876543210",
+    whatsapp: "https://wa.me/918830302059",
     facebook: "https://facebook.com/dhuleelectrical",
     instagram: "https://instagram.com/dhuleelectrical",
     googleBusiness: "https://maps.google.com/?q=Dhule+Electrical+Works"
