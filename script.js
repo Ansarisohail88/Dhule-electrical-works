@@ -351,12 +351,10 @@ function renderFAQ(faqList) {
 function initPreloader() {
     const preloader = document.getElementById('preloader');
     if (preloader) {
-        // Direct hide execution without waiting for 'load' event again
-        setTimeout(() => {
-            preloader.classList.add('hidden');
-        }, 500); // 0.5 second me hide ho jayega
+        preloader.classList.add('hidden');
+        preloader.style.display = 'none';
     }
-}
+                                }
 // --- Dark Mode Toggle ---
 function initThemeToggle() {
   const themeToggleBtn = document.getElementById('theme-toggle');
