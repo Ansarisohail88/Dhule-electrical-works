@@ -744,7 +744,7 @@ function closeAllModals() {
 
 // --- Forms & Direct WhatsApp Redirect + Firebase Review Publishing ---
 function initForms() {
-  const waNum = getProp('contact.whatsappNumber', '919876543210');
+  const waNum = getProp('contact.whatsappNumber', '918830302059');
   const bizName = getProp('business.name', 'Dhule Electrical Works');
 
   const bookingForm = document.getElementById('service-booking-form');
