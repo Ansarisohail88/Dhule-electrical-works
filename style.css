@@ -1812,6 +1812,18 @@ body {
   cursor: pointer;
   transition: var(--transition);
   text-decoration: none;
+   /* Fallback: Loader animation ke 2 second baad site automatically visible ho jayegi */
+#preloader.hidden, #preloader {
+    animation: hideLoader 0.5s forwards 1.5s;
+}
+
+@keyframes hideLoader {
+    to {
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+    }
+}
 }
 
 .admin-trigger-btn:hover {
