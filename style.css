@@ -1837,3 +1837,7 @@ body {
   background: var(--primary);
   color: #FFFFFF;
 }
+
+#preloader {
+    display: none !important;
+}
